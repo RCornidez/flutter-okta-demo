@@ -5,11 +5,12 @@ import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
+import '../env/environment_state.dart';
+
 class AuthClient {
-  static const _domain = 'trial-8077266.okta.com';
-  static const _clientId = 'YOUR_CLIENT_ID';
-  static const _redirectUri = 'com.okta.trial-8077266:/callback';
-  static const _apiToken = 'YOUR_OKTA_API_TOKEN';
+  const AuthClient(this._env);
+
+  final EnvironmentState _env;
 
   // Builds a PKCE-secured authorization URL and opens it in an in-app browser.
   Future<void> loginRedirect() async {
@@ -17,11 +18,11 @@ class AuthClient {
     final challenge = _generateCodeChallenge(verifier);
     final state = _generateState();
 
-    final uri = Uri.https(_domain, '/oauth2/default/v1/authorize', {
-      'client_id': _clientId,
+    final uri = Uri.https(_env.domain, '/oauth2/default/v1/authorize', {
+      'client_id': _env.clientId,
       'response_type': 'code',
       'scope': 'openid profile email',
-      'redirect_uri': _redirectUri,
+      'redirect_uri': _env.redirectUri,
       'state': state,
       'code_challenge': challenge,
       'code_challenge_method': 'S256',
@@ -40,9 +41,9 @@ class AuthClient {
     required String password,
   }) async {
     final response = await http.post(
-      Uri.https(_domain, '/api/v1/users', {'activate': 'true'}),
+      Uri.https(_env.domain, '/api/v1/users', {'activate': 'true'}),
       headers: {
-        'Authorization': 'SSWS $_apiToken',
+        'Authorization': 'SSWS ${_env.apiToken}',
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },

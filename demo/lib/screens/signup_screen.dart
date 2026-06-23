@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../auth/auth_client.dart';
 
 class SignupScreen extends StatefulWidget {
-  const SignupScreen({super.key});
+  const SignupScreen({super.key, required this.auth});
+
+  final AuthClient auth;
 
   @override
   State<SignupScreen> createState() => _SignupScreenState();
@@ -16,7 +18,6 @@ class _SignupScreenState extends State<SignupScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final _auth = AuthClient();
 
   bool _loading = false;
   bool _obscurePassword = true;
@@ -38,7 +39,7 @@ class _SignupScreenState extends State<SignupScreen> {
     setState(() => _loading = true);
 
     try {
-      await _auth.signup(
+      await widget.auth.signup(
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
         email: _emailController.text.trim(),
