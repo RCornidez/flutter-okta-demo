@@ -8,14 +8,15 @@ import 'package:url_launcher/url_launcher.dart';
 import '../env/environment_state.dart';
 
 class AuthClient {
-  const AuthClient(this._env);
+  AuthClient(this._env);
 
   final EnvironmentState _env;
+  String? _codeVerifier;
 
   // Builds a PKCE-secured authorization URL and opens it in an in-app browser.
   Future<void> loginRedirect() async {
-    final verifier = _generateCodeVerifier();
-    final challenge = _generateCodeChallenge(verifier);
+    _codeVerifier = _generateCodeVerifier();
+    final challenge = _generateCodeChallenge(_codeVerifier!);
     final state = _generateState();
 
     final uri = Uri.https(_env.domain, '/oauth2/default/v1/authorize', {
@@ -31,6 +32,35 @@ class AuthClient {
     if (!await launchUrl(uri, mode: LaunchMode.inAppBrowserView)) {
       throw Exception('Could not launch login URL');
     }
+  }
+
+  // Exchanges the authorization code from the callback URI for tokens using the stored PKCE verifier.
+  Future<Map<String, dynamic>> handleCallback(String callbackUrl) async {
+    final uri = Uri.parse(callbackUrl);
+    final code = uri.queryParameters['code'];
+    if (code == null) throw Exception('No authorization code in callback');
+    if (_codeVerifier == null) throw Exception('Missing code verifier');
+
+    final response = await http.post(
+      Uri.https(_env.domain, '/oauth2/default/v1/token'),
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: {
+        'grant_type': 'authorization_code',
+        'code': code,
+        'redirect_uri': _env.redirectUri,
+        'client_id': _env.clientId,
+        'code_verifier': _codeVerifier!,
+      },
+    );
+
+    _codeVerifier = null;
+
+    if (response.statusCode != 200) {
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      throw Exception(body['error_description'] ?? 'Token exchange failed');
+    }
+
+    return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
   // Registers a new user via the Okta Users API and activates the account immediately.
