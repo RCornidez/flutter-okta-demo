@@ -8,13 +8,15 @@ A Flutter app demonstrating user registration and login with [Okta](https://okta
 
 I signed up for trial access this will generate a unique domain. You can use this and update your application name throughout the app. Or you can just set the callbacks to be: login redirect `com.okta.trial-8077266:/callback` and logout redirect `com.okta.trial-8077266:/`. This should work without having to refactor folders/names.
 
-You will need to generate:
-    1. An application (OIDC, Native)
-    2. An API token (Security > API > Tokens > "Create Token")
+**You will need to generate:**
 
-You will need to configure:
-    1. A resource server access policy: in the Admin Console go to Security > API > Authorization Servers, edit the `default` server, open Access Policies, and add a rule that grants simple permissions.
-    2. A single factor login policy and assign it to the app. (for simplicity to not require users to use authenticator app)
+1. An application (OIDC, Native)
+2. An API token (Security > API > Tokens > "Create Token")
+
+**You will need to configure:**
+
+1. A resource server access policy: in the Admin Console go to Security > API > Authorization Servers, edit the `default` server, open Access Policies, and add a rule that grants simple permissions.
+2. A single factor login policy and assign it to the app. (for simplicity to not require users to use authenticator app)
 
 Note the domain, client id, and API token for env setup.
 
